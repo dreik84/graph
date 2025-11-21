@@ -78,6 +78,31 @@ public class Graph {
         }
     }
 
+    // Minimum Spanning Tree - Минимальное остовное дерево
+    public void mst() {
+        vertexList[0].wasVisited = true;
+        theStack.push(0);
+
+        while (!theStack.isEmpty()) {
+            int currentVertex = theStack.peek();
+            int v = getAdjUnvisitedVertex(currentVertex);
+
+            if (v == -1) {
+                theStack.pop();
+            } else {
+                vertexList[v].wasVisited = true;
+                theStack.push(v);
+                displayVertex(currentVertex);
+                displayVertex(v);
+                System.out.print(" ");
+            }
+        }
+
+        for (int i = 0; i < nVerts; i++) {
+            vertexList[i].wasVisited = false;
+        }
+    }
+
     public int getAdjUnvisitedVertex(int v) {
 
         for (int i = 0; i < nVerts; i++)

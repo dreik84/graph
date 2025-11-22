@@ -7,6 +7,7 @@ public class Graph {
     private int nVerts;
     private StackX theStack;
     private Queue theQueue;
+    private char sortedArray[];
 
     public Graph() {
         vertexList = new Vertex[MAX_VERTS];
@@ -14,6 +15,7 @@ public class Graph {
         nVerts = 0;
         theStack = new StackX();
         theQueue = new Queue();
+        sortedArray = new char[MAX_VERTS];
 
         for (int j = 0; j < MAX_VERTS; j++)
             for (int k = 0; k < MAX_VERTS; k++)
@@ -27,6 +29,10 @@ public class Graph {
     public void addEdge(int start, int end) {
         adjMat[start][end] = 1;
         adjMat[end][start] = 1;
+    }
+
+    public void addEdgeTopo(int start, int end) {
+        adjMat[start][end] = 1;
     }
 
     public void displayVertex(int v) {
@@ -110,5 +116,74 @@ public class Graph {
                 return i;
 
         return -1;
+    }
+
+    // Topological sorting - Топологическая сортировка
+    public void topo() {
+        int origNVerts = nVerts;
+
+        while (nVerts > 0) {
+            int currentVertex = noSuccessors();
+
+            if (currentVertex == -1) {
+                System.out.println("Error: Graph has cycles");
+                return;
+            }
+
+            sortedArray[nVerts - 1] = vertexList[currentVertex].label;
+
+            deleteVertex(currentVertex);
+        }
+
+        System.out.print("Topologically sorted order: ");
+        for (int i = 0; i < origNVerts; i++) System.out.print(sortedArray[i]);
+        System.out.println();
+    }
+
+    public int noSuccessors() {
+        boolean isEdge;
+
+        for (int row = 0; row < nVerts; row++) {
+            isEdge = false;
+
+            for (int col = 0; col < nVerts; col++) {
+
+                if (adjMat[row][col] > 0) {
+                    isEdge = true;
+                    break;
+                }
+            }
+
+            if (!isEdge) return row;
+        }
+
+        return -1;
+    }
+
+    public void deleteVertex(int delVert) {
+
+        if (delVert != nVerts - 1) {
+
+            for (int j = delVert; j < nVerts - 1; j++)
+                vertexList[j] = vertexList[j + 1];
+
+            for (int row = delVert; row < nVerts - 1; row++)
+                moveRowUp(row, nVerts);
+
+            for (int col = delVert; col < nVerts - 1; col++)
+                moveColLeft(col, nVerts - 1);
+        }
+
+        nVerts--;
+    }
+
+    private void moveRowUp(int row, int length) {
+        for (int col = 0; col < length; col++)
+            adjMat[row][col] = adjMat[row + 1][col];
+    }
+
+    private void moveColLeft(int col, int length) {
+        for (int row = 0; row < length; row++)
+            adjMat[row][col] = adjMat[row][col + 1];
     }
 }

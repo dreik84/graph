@@ -2,12 +2,16 @@ package org.example;
 
 public class Graph {
     private final int MAX_VERTS = 20;
+    private final int INFINITY = 1_000_000;
     private Vertex vertexList[];
     private int adjMat[][];
     private int nVerts;
+    private int currentVert;
     private StackX theStack;
     private Queue theQueue;
     private char sortedArray[];
+    private PriorityQ thePQ;
+    private int nTree;
 
     public Graph() {
         vertexList = new Vertex[MAX_VERTS];
@@ -16,10 +20,11 @@ public class Graph {
         theStack = new StackX();
         theQueue = new Queue();
         sortedArray = new char[MAX_VERTS];
+        thePQ = new PriorityQ();
 
         for (int j = 0; j < MAX_VERTS; j++)
             for (int k = 0; k < MAX_VERTS; k++)
-                adjMat[j][k] = 0;
+                adjMat[j][k] = INFINITY;
     }
 
     public void addVertex(char lab) {
@@ -29,6 +34,11 @@ public class Graph {
     public void addEdge(int start, int end) {
         adjMat[start][end] = 1;
         adjMat[end][start] = 1;
+    }
+
+    public void addEdge(int start, int end, int weight) {
+        adjMat[start][end] = weight;
+        adjMat[end][start] = weight;
     }
 
     public void addEdgeTopo(int start, int end) {
@@ -185,5 +195,58 @@ public class Graph {
     private void moveColLeft(int col, int length) {
         for (int row = 0; row < length; row++)
             adjMat[row][col] = adjMat[row][col + 1];
+    }
+
+    // Построение минимального остовного дерева для взвешенного графа
+    public void mstw() {
+        currentVert = 0;
+
+        while (nTree < nVerts - 1) {
+            vertexList[currentVert].isInTree = true;
+            nTree++;
+
+            for (int j = 0; j < nVerts; j++) {
+                if (j == currentVert) continue;
+                if (vertexList[j].isInTree) continue;
+                int distance = adjMat[currentVert][j];
+                if (distance == INFINITY) continue;
+                putInPQ(j, distance);
+            }
+
+            if (thePQ.size() == 0) {
+                System.out.println("Graph not connected");
+                return;
+            }
+
+            Edge theEdge = thePQ.removeMin();
+            int sourceVert = theEdge.srcVert;
+            currentVert = theEdge.destVert;
+
+            System.out.print(vertexList[sourceVert].label);
+            System.out.print(vertexList[currentVert].label);
+            System.out.print(" ");
+        }
+
+        for (int i = 0; i < nVerts; i++) {
+            vertexList[i].isInTree = false;
+        }
+    }
+
+    public void putInPQ(int newVert, int newDist) {
+        int queueIndex = thePQ.find(newVert);
+
+        if (queueIndex != -1) {
+            Edge tempEdge = thePQ.peekN(queueIndex);
+            int oldDist = tempEdge.distance;
+
+            if (oldDist > newDist) {
+                thePQ.removeN(queueIndex);
+                Edge theEdge = new Edge(currentVert, newVert, newDist);
+                thePQ.insert(theEdge);
+            }
+        } else {
+            Edge theEdge = new Edge(currentVert, newVert, newDist);
+            thePQ.insert(theEdge);
+        }
     }
 }
